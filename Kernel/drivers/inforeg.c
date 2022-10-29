@@ -27,3 +27,21 @@ int getRegisters(uint64_t * output){
     }
     return 1;
 }
+
+void printMemory(uint64_t argument){
+
+    char dump[32] = {'0'};
+
+    uint8_t *memAddress = (uint8_t *)argument;
+    
+    for (int i = 0; i < 32; i++){
+        uint32_t dig = uintToBase(memAddress[i], dump, 16);
+        for(int i=0; i < 2-dig; i++){
+           ncPrintChar('0');
+       }
+        ncPrint(dump);
+        ncPrintChar(' ');
+    }
+    
+    ncPrintChar('\n');
+}
