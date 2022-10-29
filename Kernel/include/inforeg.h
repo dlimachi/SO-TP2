@@ -6,6 +6,8 @@
 
 void setRegisters(uint64_t * registers);
 
+void printMemory(uint64_t argument);
+
 int getRegisters(uint64_t * output); 
 
 #endif
