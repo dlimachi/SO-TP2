@@ -81,7 +81,9 @@ extern void timerInterrupt();
 
 extern void _hlt();
 
-int changeProcessState(uint64_t pid, states state);
+void initializeScheduler();
+
+void initScheduler();
 
 void createFirstProcess();
 
@@ -92,8 +94,6 @@ void forceExitAfterExec(int argc, char *argv[], void *processFn(int, char **));
 uint64_t schedule(uint64_t rsp);
 
 uint64_t getPid();
-
-void initializeScheduler();
 
 uint64_t block(uint64_t pid);
 
@@ -116,8 +116,6 @@ uint64_t nice(uint64_t pid, uint64_t newPriority);
 void forceTimerTick();
 
 uint64_t setupStack(uint64_t startStack, uint64_t loader, uint64_t argc, uint64_t argv, uint64_t rip);
-
-void initScheduler();
 
 int getFdIn();
 
