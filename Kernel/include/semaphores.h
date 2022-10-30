@@ -16,7 +16,7 @@
 
 typedef struct pNode{
     struct pNode * next;
-    pid_t pid;
+    uint64_t pid;
 } pNode;
 
 typedef struct TSem {
