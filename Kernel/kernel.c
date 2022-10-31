@@ -9,8 +9,8 @@
 #include <scheduler.h>
 #include <interrupts.h>
 #include <semaphores.h>
-#include <pipes.h>
-#include <ioManager.h>
+#include <pipe.h>
+#include <IOManager.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
