@@ -1,14 +1,7 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #ifndef BUDDY
-
 #include <memManager.h>
-
-/*
- * This memory manager is based on the one written on "C Programming Language" page 163
- * TODO Free asumes that the pointer given is a pointer to a valid block, that may not always be the case
- */
 
 union header {
     struct {
@@ -86,6 +79,21 @@ void memoryInfo(struct memoryInfo *info) {
     info->free = memInfo.free;
     info->totalSize = memInfo.totalSize;
     info->occupied = memInfo.totalSize - memInfo.free;
+}
+
+void mem(){
+
+    print("Memoria total: ");
+    printDec(HEAP_MAX_SIZE);
+    print(" bytes\n");
+
+    print("Memoria en uso: ");
+    printDec(HEAP_MAX_SIZE - freeBytesRemaining);
+    print(" bytes\n");
+
+    print("Memoria libre: ");
+    printDec(freeBytesRemaining);
+    print(" bytes\n");
 }
 
 #endif //BUDDY

@@ -256,5 +256,21 @@ void mem(){
     printDec(freeBytesRemaining);
     print(" bytes\n");
 }
+
+void mem(){
+
+    print("Memoria total: ");
+    printDec(HEAP_MAX_SIZE);
+    print(" bytes\n");
+
+    print("Memoria en uso: ");
+    printDec(HEAP_MAX_SIZE - freeBytesRemaining);
+    print(" bytes\n");
+
+    print("Memoria libre: ");
+    printDec(freeBytesRemaining);
+    print(" bytes\n");
+}
+
 #endif
 
