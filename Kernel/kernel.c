@@ -10,6 +10,7 @@
 #include <interrupts.h>
 #include <semaphores.h>
 #include <pipe.h>
+#include <exceptions.h>
 #include <IOManager.h>
 
 extern uint8_t text;
