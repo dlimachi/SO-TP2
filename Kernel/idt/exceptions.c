@@ -1,28 +1,27 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
-#define ZERO_EXCEPTION_ID 0
-#define INVALID_OPCODE_EXCEPTION_ID 6
-
+#include <exceptions.h>
 #include <naiveConsole.h>
-#include <scheduler.h>
 
-static void zero_division(uint64_t rip, uint64_t rsp, const uint64_t * backup);
-static void invalid_opcode(uint64_t rip, uint64_t rsp, const uint64_t * backup);
 
-void exceptionDispatcher(uint64_t exception, uint64_t rip, uint64_t rsp, const uint64_t * backup) {
-	if (exception == ZERO_EXCEPTION_ID)
-		zero_division(rip, rsp, backup);
-	else if (exception == INVALID_OPCODE_EXCEPTION_ID)
-	{
-		invalid_opcode(rip, rsp, backup);
+static initialState initS;
+
+void exceptionDispatcher(int exception, uint64_t *registers) {
+	switch(exception){
+		case ZERO_EXCEPTION_ID:
+			zeroDivision();
+			break;
+		case INVALID_OPCODE_EXCEPTION_ID:
+			invalidOpcode();
+			break;
+		default:
+			return;
 	}
-	// If a scheduled task generated the exception, pause it.
-	kill(getPid());
+	saveRegisterInfo();
+	getRegistersInfo();
+
+	restartTerminal(registers);
 }
-
-
-static char* registers[] = {" RAX:", " RBX:", " RCX:", " RDX:", " RBP:", " RDI:", " RSI:", " R8:", " R9:", " R10:", " R11:", " R12:", " R13:", " R14:", " R15:"};
 
 static void printRegisters(uint64_t rip, uint64_t rsp, const uint64_t * backup){
 	ncNewline();
@@ -37,14 +36,20 @@ static void printRegisters(uint64_t rip, uint64_t rsp, const uint64_t * backup){
 	}
 }
 
-static void zero_division(uint64_t rip, uint64_t rsp, const uint64_t * backup) {
-	// Handler para manejar excepcíon
+void zeroDivision() {
 	ncPrintFormat("ERROR: Zero division.", ERROR_FORMAT);
-	printRegisters(rip, rsp, backup);
 }
 
-static void invalid_opcode(uint64_t rip, uint64_t rsp, const uint64_t * backup){
-	// Handler para manejar excepcion
+void invalidOpcode() {
 	ncPrintFormat("ERROR: Invalid operation code.", ERROR_FORMAT);
-	printRegisters(rip, rsp, backup);
+}
+
+void saveInitialState(uint64_t IP, uint64_t SP){
+	initS.IP = IP;
+	initS.SP = SP;
+}
+
+void restartTerminal(uint64_t *registers){
+	registers[IP_INDEX] = initS.IP;
+	registers[SP_INDEX] = initS.SP;
 }

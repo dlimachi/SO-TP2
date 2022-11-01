@@ -57,7 +57,7 @@ void * initializeKernelBinary()
 
 int main()
 {	
-	ncClear();
+/*	ncClear();
     // TODO decide actual location and size of heap
     createMemoryManager((void*)0x900000, 16384);
     initializeScheduler();
@@ -67,5 +67,28 @@ int main()
     forceTimerTick();
 //	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
 	ncPrint("[Finished]");
+	return 0;
+	*/
+	load_idt();
+	ncClear();
+
+	_cli();
+	initSemaphores();
+	_sti();
+
+	_cli();
+	initPipes();
+	_sti();
+
+	_cli();
+	initScheduler();
+	_sti();
+
+	saveInitialState((uint64_t)sampleCodeModuleAddress, getSP());
+	
+	((EntryPoint)sampleCodeModuleAddress)();
+	/* No vuelve a este punto despues de que se borra firstProcess */
+	while(1);
+	
 	return 0;
 }
