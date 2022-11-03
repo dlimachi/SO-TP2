@@ -3,6 +3,7 @@ GLOBAL _cli
 GLOBAL _sti
 GLOBAL picMasterMask
 GLOBAL picSlaveMask
+GLOBAL haltcpu
 GLOBAL _hlt
 
 GLOBAL _irq00Handler
@@ -12,12 +13,16 @@ GLOBAL _irq03Handler
 GLOBAL _irq04Handler
 GLOBAL _irq05Handler
 
+GLOBAL _syscallHandler
+
 GLOBAL _exception0Handler
 GLOBAL _exception6Handler
 
+
 EXTERN irqDispatcher
 EXTERN exceptionDispatcher
-EXTERN schedule
+EXTERN syscallDispatcher
+EXTERN scheduler
 
 SECTION .text
 
@@ -57,11 +62,44 @@ SECTION .text
 	pop rax
 %endmacro
 
+%macro pushStateMinusRax 0
+	push rbx
+	push rcx
+	push rdx
+	push rbp
+	push rdi
+	push rsi
+	push r8
+	push r9
+	push r10
+	push r11
+	push r12
+	push r13
+	push r14
+	push r15
+%endmacro
+
+%macro popStateMinusRax 0
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop r11
+	pop r10
+	pop r9
+	pop r8
+	pop rsi
+	pop rdi
+	pop rbp
+	pop rdx
+	pop rcx
+	pop rbx
+%endmacro
+
 %macro irqHandlerMaster 1
 	pushState
 
 	mov rdi, %1 ; pasaje de parametro
-	mov rsi, rsp	; pointer a backup registros
 	call irqDispatcher
 
 	; signal pic EOI (End of Interrupt)
@@ -73,14 +111,12 @@ SECTION .text
 %endmacro
 
 
+
 %macro exceptionHandler 1
 	pushState
 
-	;rdi, rsi, rdx, rcx, r8 y r9
-	mov rdi, %1 ; pasaje de parametro
-	mov rsi, [rsp+15*8]	; Position of the original RIP in the stack
-	mov rdx, [rsp+18*8]	; Position of the original RSP in the stack
-	mov rcx, rsp
+	mov rdi, %1 	; descriptor de la excepcion
+	mov rsi, rsp	; registros
 	call exceptionDispatcher
 
 	popState
@@ -113,29 +149,32 @@ picMasterMask:
 picSlaveMask:
 	push    rbp
     mov     rbp, rsp
-    mov     ax, di  ; ax = mascara de 16 bits
-    out		0A1h,al
+    mov     ax, di  
+    out	0A1h,al
     pop     rbp
     retn
 
 
 ;8254 Timer (Timer Tick)
 _irq00Handler:
-    pushState
+	pushState
 
-    mov rdi, 0
-    call irqDispatcher
+	; ==== TIMER ======
+	mov rdi, 0
+	call irqDispatcher
 
-    mov rdi, rsp
-    call schedule
-    mov rsp, rax
+	call _cli
+	; ==== SCHEDULER ====
+	mov rdi, rsp 	; Guardo rsp
+	call scheduler	
+	mov rsp, rax 	; Recupero rsp
+	call _sti
+	; signal pic EOI (End of Interrupt)
+	mov al, 20h
+	out 20h, al
 
-    ; signal pic EOI (End of Interrupt)
-    mov al, 20h
-    out 20h, al
-
-    popState
-    iretq
+	popState
+	iretq
 
 ;Keyboard
 _irq01Handler:
@@ -157,12 +196,32 @@ _irq04Handler:
 _irq05Handler:
 	irqHandlerMaster 5
 
+; Syscalls
+_syscallHandler:
+	pushStateMinusRax
+	call syscallDispatcher
+	popStateMinusRax
+
+	; signal pic EOI (End of Interrupt)
+	push rax
+	mov al, 20h
+	out 20h, al
+	pop rax
+
+	iretq
 
 ;Zero Division Exception
 _exception0Handler:
 	exceptionHandler 0
 
-;Invalid Opcode Exception
+;Invalid Code Exception
 _exception6Handler:
 	exceptionHandler 6
 
+haltcpu:
+	cli
+	hlt
+	ret
+
+SECTION .bss
+	aux resq 1

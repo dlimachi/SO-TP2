@@ -1,13 +1,8 @@
 GLOBAL cpuVendor
-GLOBAL getSeconds
-GLOBAL getMinutes
-GLOBAL getHours
-GLOBAL read_port
-GLOBAL getDay
-GLOBAL getMonth
-GLOBAL getYear
-GLOBAL tick
-GLOBAL loadUserland
+GLOBAL saveRegisterInfo
+GLOBAL getSP
+GLOBAL timerInterrupt
+EXTERN savereg
 
 section .text
 	
@@ -19,7 +14,6 @@ cpuVendor:
 
 	mov rax, 0
 	cpuid
-
 
 	mov [rdi], ebx
 	mov [rdi + 4], edx
@@ -35,111 +29,40 @@ cpuVendor:
 	pop rbp
 	ret
 
-setBinaryBitRTC:
-	push rbp
-	mov rbp,rsp
-	mov al,0xB
-	out 70h,al
-	in al,71h
-	OR al,0b00000100; dejo en 1 el bit 2 del registro que es el que quiro cambiar 
-	out 71h,al
-	mov rsp,rbp
-	pop rbp
+saveRegisterInfo:
+
+	mov [buffer], rax				
+	mov [buffer + 1*8], rbx			
+	mov [buffer + 2*8], rcx			
+	mov [buffer + 3*8], rdx			
+	mov [buffer + 4*8], rsi				
+	mov [buffer + 5*8], rdi
+	mov [buffer + 6*8], r8
+	mov [buffer + 7*8], r9
+	mov [buffer + 8*8], r10
+	mov [buffer + 9*8], r11
+	mov [buffer + 10*8], r12
+	mov [buffer + 11*8], r13
+	mov [buffer + 12*8], r14
+	mov [buffer + 13*8], r15
+	mov [buffer + 14*8], rsp
+	mov rax, [rsp] 				; RIP.
+    mov [buffer + 15*8], rax
+	
+	mov rdi, buffer
+	call savereg
+
 	ret
 
-getSeconds:
-    push rbp
-    mov rbp,rsp
-    
-	call setBinaryBitRTC
-    mov al,0
-    out 70h,al
-    in al,71h
-    mov rsp,rbp
-    pop rbp
-    ret
+getSP:
+	mov rax, rsp
+	ret
 
-getMinutes:
-    push rbp
-    mov rbp,rsp
-	call setBinaryBitRTC
-    mov al,2
-    out 70h,al
-    in al,71h
-    mov rsp,rbp
-    pop rbp
-    ret
+timerInterrupt:
+	int 20h
+	ret
 
-getHours:
-    push rbp
-    mov rbp,rsp
-	call setBinaryBitRTC
-    mov al,04
-    out 70h,al
-    in al,71h
-    mov rsp,rbp
-    pop rbp
-    ret	
+section .bss
+buffer: resb 128
 
-read_port:
-    push rbp
-    mov rbp, rsp
-    
-    mov dx, di
-    in al, dx
-
-    mov rsp, rbp
-    pop rbp 
-    ret
-getDay:
-    push rbp
-    mov rbp,rsp
-	call setBinaryBitRTC
-    mov al,07
-    out 70h,al
-    in al,71h
-    mov rsp,rbp
-    pop rbp
-    ret		
-
-getMonth:
-    push rbp
-    mov rbp,rsp
-	call setBinaryBitRTC
-    mov al,08
-    out 70h,al
-    in al,71h
-    mov rsp,rbp
-    pop rbp
-    ret	
-
-getYear:
-	push rbp
-    mov rbp,rsp
-	call setBinaryBitRTC
-    mov al,09
-    out 70h,al
-    in al,71h
-    mov rsp,rbp
-    pop rbp
-    ret	
-
-tick:
-    push rbp
-    mov rbp, rsp
-    int 20h
-    mov rsp, rbp
-    pop rbp
-    ret
-
-loadUserland:
-    push rbp
-    mov rbp, rsp
-
-    mov rsp, rsi
-    push .return
-    jmp rdi
-.return:
-    mov rsp, rbp
-    pop rbp
-    ret
+	
