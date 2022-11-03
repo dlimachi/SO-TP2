@@ -1,12 +1,9 @@
-#ifndef timerDriver
-#define timerDriver
-
-#include <idtLoader.h>
-#include <naiveConsole.h>
-
-void timer_handler(uint64_t * registers);
+#ifndef _TIME_H_
+#define _TIME_H_
+        
+void timer_handler();
 int ticks_elapsed();
 int seconds_elapsed();
-void printEvery5s();
+int deciseconds_elapsed();
 
 #endif

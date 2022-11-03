@@ -3,7 +3,7 @@
 #include <IOManager.h>
 
 void print(char * str){
-    printWithColor(str, WHITE_BLACK);
+    writeStrHandler(getFdOut(), str);
 }
 
 void printWithColor(char * str, uint8_t colorCode){
@@ -11,11 +11,7 @@ void printWithColor(char * str, uint8_t colorCode){
 }
 
 void putChar(char c){
-    putCharWithColor(c, WHITE_BLACK);
-}
-
-void putCharWithColor(char c, uint8_t colorCode){
-    writeCharHandler(getFdOut(), c, colorCode);
+    writeCharHandler(getFdOut(), c);
 }
 
 void printDec(uint64_t value){
@@ -40,22 +36,22 @@ unsigned char readHandler(int fd){
     return readPipeWithFd(fd);  
 }
 
-uint32_t writeStrHandler(int fd, char * str, uint8_t colorCode){
+uint32_t writeStrHandler(int fd, char * str){
     if(fd < 0)
         return 0;
     if(fd == STDOUT){
-        ncPrintWithColor(str, colorCode);
+        ncPrint(str);
         return strlen(str);
     }
     else
         return writeInPipeWithFd(fd, str);
 }
 
-uint32_t writeCharHandler(int fd, char c, uint8_t colorCode){
+uint32_t writeCharHandler(int fd, char c){
     if(fd < 0)
         return 0;
     if(fd == STDOUT){
-        ncPrintCharWithColor(c, colorCode);
+        ncPrint(c);
         return 1;
     }
     else

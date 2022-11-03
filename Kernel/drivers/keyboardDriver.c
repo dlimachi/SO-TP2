@@ -104,10 +104,10 @@ static void add(char key);
 static char translate(uint16_t key);
 static uint8_t pressed(uint16_t scancode, uint16_t key);
 
-void keyboard_handler(uint64_t * registers)
+int keyboard_handler(uint64_t * registers)
 {
   if (!(read_port(0x64) & 0x01))
-    return;
+    return 1;
   uint16_t scancode = read_port(0x60);
   uint16_t key = scancode & 0x7F;
   if (pressed(scancode, key))
@@ -120,6 +120,7 @@ void keyboard_handler(uint64_t * registers)
       add(translate(key));
     }
   }
+  return 0;
 }
 
 static uint8_t pressed(uint16_t scancode, uint16_t key)

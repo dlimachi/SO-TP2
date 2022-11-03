@@ -2,21 +2,22 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <irqDispatcher.h>
 
-
-static void int_20(uint64_t * registers);
-static void int_21(uint64_t * registers);
-
-static void (*irq_handlers[])(uint64_t *) = { int_20, int_21};
-
 void irqDispatcher(uint64_t irq, uint64_t * registers) {
-	(*irq_handlers[irq])(registers);
+	switch (irq) {
+		case 0:
+			int_20(); 			// Timer
+			break;
+		 case 1:
+		 	int_21(registers); 			// Teclado
+	 		break;
+	}
 	return;
 }
 
-static void int_20(uint64_t * registers) {
-	timer_handler(registers);
+void int_20() {
+	timer_handler();
 }
 
-static void int_21(uint64_t * registers) {
-	keyboard_handler(registers);
+void int_21(uint64_t * registers){
+	keyboardHandler(registers);
 }

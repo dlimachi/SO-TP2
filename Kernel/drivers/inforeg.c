@@ -17,15 +17,26 @@ void setRegisters(uint64_t * registers){
     set = 1;
 }
 
-int getRegisters(uint64_t * output){
-    if (! set)
-        return 0;
-    
-    for (int i = 0; i < REG_AMOUNT+3; i++)
-    {
-        output[i] = genRegs[i];
+void getRegisters(){
+    if(set == 0){
+        return;
     }
-    return 1;
+
+    char * regs[REG_AMOUNT] = {"RAX", "RBX", "RCX", "RDX", "RSI", "RDI", "R8 ", "R9 ", "R10", "R11", "R12", "R13", "R14", "R15", "RSP", "RIP"};
+    
+    char str[8] = {'0'};
+    for(int i = 0; i < REG_AMOUNT; i++){
+        ncPrint(regs[i]);
+        ncPrint(": ");
+
+        uint32_t dig = uintToBase(backup[i], str, REG_AMOUNT);
+        for(int i=0; i < 8-dig; i++){
+           ncPrintChar('0');
+        } 
+        
+        ncPrint(str);
+        ncPrintChar('\n');
+    }
 }
 
 void printMemory(uint64_t argument){

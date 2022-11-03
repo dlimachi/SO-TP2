@@ -7,7 +7,6 @@
 #define VIDEOSTART 0xB8000
 #define WINDOWS 2
 
-static uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
 static char buffer[64] = {'0'};
 static uint8_t *const video = (uint8_t *)VIDEOSTART;
 static uint8_t *currentVideo = (uint8_t *)VIDEOSTART;
@@ -75,6 +74,24 @@ void ncDeleteChar(){
 	}
 }
 
+void ncPrintInPos(const char * string, int row, int col){
+    for(int i = 0; string[i] != 0; i++) {
+		if(col + i >= width)
+			return;
+		ncPrintCharInPos(string[i], row, col + i);
+	}
+}
+
+void ncPrintCharInPos(char c, int row, int col){
+	if(row < 0 || row > height)
+		return;
+	if(col < 0 || col > width)
+		return;
+
+	uint8_t * printPos = video + row * LINE_LENGTH + col * 2;
+	printPos[0] = c;
+}
+
 void ncPrintFormat(const char* string,uint8_t format){
 	for(int i=0;string[i]!='\0';i++){
 		ncPrintCharFormat(string[i],format);
@@ -115,7 +132,6 @@ void ncPrintCharFormat(char character,uint8_t format){
 void ncPrint(const char *string)
 {
 	int i; 
-
 	for (i = 0; string[i] != 0; i++)
 		ncPrintChar(string[i]);
 }
@@ -177,6 +193,17 @@ void ncClear()
 	} else {
 		ncClearWindow(currentWindow);
 	}
+}
+
+void ncBackspace(){
+	uint64_t posInLine = (uint64_t)(currentVideo - video) % (uint64_t)(LINE_LENGTH);
+	if(posInLine <= PROMPT_SIZE + 1)
+		return;
+
+	currentVideo--;
+	*currentVideo = DEFAULT_COLOR;
+	currentVideo--;
+	*currentVideo = ' ';
 }
 
 void ncClearWindow(uint8_t windowToCLear){

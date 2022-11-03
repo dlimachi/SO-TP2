@@ -4,7 +4,7 @@
 
 static unsigned long ticks = 0;
 
-void timer_handler(uint64_t * registers) {
+void timer_handler() {
 	ticks++;
 }
 
@@ -15,3 +15,8 @@ int ticks_elapsed() {
 int seconds_elapsed() {
 	return ticks / 18;
 }
+
+int deciseconds_elapsed() {
+	return (int)(ticks / 1.8);
+}
+

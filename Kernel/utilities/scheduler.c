@@ -573,17 +573,14 @@ static process * getProcess(processList * list, uint64_t pid){
     return getProcessAndPrevious(list, pid, &toDiscard);
 }
 
-/* Obtiene un proceso especifico de la lista por PID, pero no lo elimina de la misma.
- * Adicionalmente, en el puntero *previous devuelve el nodo anterior al retornado */
+
 static process * getProcessAndPrevious(processList * list, uint64_t pid, process ** prev){
-    /* Si la lista no existe, esta vacia o el PID es invalido, retorno */
     if(list == NULL || list->size == 0 || pid <= 0)
         return NULL;
 
-    /* Tomo el primero. En este punto, no puede ser NULL */
     process * toRet = list->first;
     *prev = toRet;
-    /* Recorro la lista buscando aquel proceso que coincida en PID */
+
     int i;
     for (i = 0; i < list->size; i++){
         if(toRet->pc.pid == pid)
@@ -592,7 +589,6 @@ static process * getProcessAndPrevious(processList * list, uint64_t pid, process
         toRet = toRet->next;
     }
 
-    /* Si se recorrio toda la lista, significa que no se encontro */
     if(i == list->size){
         *prev = NULL;
         return NULL;
@@ -607,12 +603,10 @@ static void setArgs(char ** to, char ** from, int argc){
     for (int i = 0; i < argc; i++){
         argLen = strlen(from[i]);
 
-        /* Reservo espacio para el argumento i */
         to[i] = malloc(argLen + 1);
         if(to[i] == NULL)
             return;
 
-        /* Copio el argumento i al nuevo arreglo */
         memcpy(to[i], from[i], argLen+1);
     }  
 }

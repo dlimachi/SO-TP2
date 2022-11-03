@@ -194,8 +194,8 @@ void * malloc(size_t wantedSize){
     }
     
     if(retPointer != NULL){
-        // printf("\tSe entregara el puntero %p\n", retPointer);
-        // printf("\t--- FBR: %ld (Se deben %ld)\n", freeBytesRemaining, ADJUSTED_HEAP_SIZE - freeBytesRemaining);
+        printf("\tSe entregara el puntero %p\n", retPointer);
+        printf("\t--- FBR: %ld (Se deben %ld)\n", freeBytesRemaining, ADJUSTED_HEAP_SIZE - freeBytesRemaining);
     }
 
     process * currentP = getExecutingP();
@@ -203,7 +203,7 @@ void * malloc(size_t wantedSize){
     {
         if(currentP->pc.allocated[i] == NULL){
             currentP->pc.allocated[i] = retPointer;
-            //ncPrintHex((uint64_t)currentP->pc.allocated[i]);
+            ncPrintHex((uint64_t)currentP->pc.allocated[i]);
             break;
         }
 
@@ -218,9 +218,6 @@ void free(void * p) {
     memoryBlock_t * toFree;
 
     if(p != NULL) {
-        /* El puntero que se le entrego al usuario, era contiguo a un memoryBlock_t que
-        * representaba al bloque de memoria entregado. Al restar el tamaño de la estructura,
-        * podemos posicionarnos al comienzo del mismo. */
         blockPointer -= MemoryBlockStructSize;
 
         toFree = (void *) blockPointer;

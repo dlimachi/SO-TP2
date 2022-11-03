@@ -7,7 +7,10 @@
 #include <scheduler.h>
 #include <inforeg.h>
 
-void keyboard_handler(uint64_t * registers);
+extern int keyboardActivated();
+extern unsigned char getPressedKey();
+
+int keyboard_handler(uint64_t * registers);
 uint64_t readBuffer(char* output, uint64_t count);
 
 #endif 
