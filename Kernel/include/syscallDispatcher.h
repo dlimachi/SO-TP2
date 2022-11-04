@@ -1,28 +1,21 @@
-#ifndef SYSCALLDISPATCHER_H
-#define SYSCALLDISPATCHER_H
+#ifndef SYSCALL_DISPATCHER_H
+#define SYSCALL_DISPATCHER_H
 
 #include <stdint.h>
-#include <naiveConsole.h>
-#include <lib.h>
 #include <keyboardDriver.h>
+#include <rtcDriver.h>
+#include <memory.h>
+#include <naiveConsole.h>
 #include <scheduler.h>
-#include <inforeg.h>
-#include <defs.h>
 #include <semaphores.h>
-#include <pipe.h>
-#include <IOManager.h>
-
-#define STDIN 0
-#define STDOUT 1
-#define STDERR 2
-
-typedef struct {
-    uint8_t day, month, year;
-    uint8_t hours, minutes, seconds;
-} time_t;
+#include <pipes.h>
+#include <ioManager.h>
 
 extern void saveRegisterInfo();
 
-uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers);
+/**
+ * Deriva el numero de syscall (en rdi) a la rutina correspondiente y le transfiere sus parametros 
+**/
+uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9);
 
 #endif

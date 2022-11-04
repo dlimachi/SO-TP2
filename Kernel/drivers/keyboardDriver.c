@@ -2,214 +2,78 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <keyboardDriver.h>
 
-#define BUFFER_LENGTH 32
+#define MAX_SIZE 1024
+#define BACKSPACE 0x0E
 
-static char keys[] = {
-    0,  // Error
-    27, // Escape
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
-    8,    // Backspace
-    '\t', // Tab
-    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
-    '\n', // Enter
-    0,    // LControl
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
-    0, // LShift
-    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
-    0, // RShift
-    '*',
-    0, // LAlt
-    ' ',
-    0,                            // CapsLock
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // F1-F10
-    0,                            // NumLock
-    0,                            // ScrollLock
-    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'};
+static unsigned char buffer[MAX_SIZE];
+static int writeIdx = 0;
+static int readIdx = 0;
 
-static char capKeys[] = {
-    0,  // Error
-    27, // Escape
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
-    8,    // Backspace
-    '\t', // Tab
-    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']',
-    '\n', // Enter
-    0,    // LControl
-    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', '`',
-    0, // LShift
-    '\\', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/',
-    0, // RShift
-    '*',
-    0, // LAlt
-    ' ',
-    0,                            // CapsLock
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // F1-F10
-    0,                            // NumLock
-    0,                            // ScrollLock
-    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'};
+int keyboardHandler(){
+    unsigned char scancodeKey = 0;
+    while(keyboardActivated()){
+        scancodeKey = getPressedKey();
 
-static char shiftCapKeys[] = {
-    0,  // Error
-    27, // Escape
-    '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
-    8, // Backspace
-    '\t',
-    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '{', '}',
-    '\n', // Enter
-    0,    // LControl
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':', '\"',
-    '~',
-    0, // LShift
-    '|',
-    'z', 'x', 'c', 'v', 'b', 'n', 'm', '<', '>', '?',
-    0, // RShift
-    '*',
-    0, // LAlt
-    ' ',
-    0,                            // CapsLock
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // F1-F10
-    0,                            // NumLock
-    0,                            // ScrollLock
-    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'};
+        if(scancodeKey == BACKSPACE)
+            ncBackspace();
 
-static char shiftedKeys[] = {
-    0,  // Error
-    27, // Escape
-    '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
-    8, // Backspace
-    '\t',
-    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}',
-    '\n', // Enter
-    0,    // LControl
-    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"',
-    '~',
-    0, // LShift
-    '|',
-    'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',
-    0, // RShift
-    '*',
-    0, // LAlt
-    ' ',
-    0,                            // CapsLock
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // F1-F10
-    0,                            // NumLock
-    0,                            // ScrollLock
-    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'};
-
-static uint8_t buffer[BUFFER_LENGTH];
-static unsigned int realDim = 0, last = 0;
-static int shift = 0, capsLock = 0, control = 0, alt = 0;
-
-static void add(char key);
-static char translate(uint16_t key);
-static uint8_t pressed(uint16_t scancode, uint16_t key);
-
-int keyboard_handler(uint64_t * registers)
-{
-  if (!(read_port(0x64) & 0x01))
-    return 1;
-  uint16_t scancode = read_port(0x60);
-  uint16_t key = scancode & 0x7F;
-  if (pressed(scancode, key))
-  {
-    if (control){
-        if (key == 0x2E) {  //Ctrl+C = copy registers
-            setRegisters(registers);
+        if(scancodeToAscii(scancodeKey) != 0){
+            buffer[writeIdx] = scancodeToAscii(scancodeKey);
+            writeIdx = (writeIdx+1) % MAX_SIZE;
+            return 1;
         }
-    } else {
-      add(translate(key));
     }
-  }
-  return 0;
+    return 0;
 }
 
-static uint8_t pressed(uint16_t scancode, uint16_t key)
-{
-  if ((scancode & 0x80) == 0x80)
-  {
-    switch (key)
-    {
-    case 0x1d:
-      control = 0;
-      break;
-    case 0x2a:
-    case 0x36:
-      shift = 0;
-      break;
-    case 0x38:
-      alt = 0;
-      break;
-    default:
-      break;
-    }
-  }
-  else
-  {
-    switch (key)
-    {
-    case 0x1d:
-      control = 1;
-      break;
-    case 0x3a:
-      capsLock = !capsLock;
-      break;
-    case 0x2a:
-    case 0x36:
-      shift = 1;
-      break;
-    case 0x38:
-      alt = 1;
-      break;
-    default:
-      return 1;
-      break;
-    }
-  }
-  return 0;
+// Fuente: https://stackoverflow.com/questions/61124564/convert-scancodes-to-ascii
+unsigned char scancodeToAscii(int scancode){
+        unsigned char kbd_US [128] ={
+    0,  27, /* <-- Escape */
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',   
+    '\t', /* <-- Tab */
+    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',     
+    200, /* <-- control key */
+    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+    201, /* Shift */
+    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0,
+    '*',
+    202,  /* Alt */
+    ' ',  /* Space bar */
+    0,  /* Caps lock */
+    0,  /* 59 - F1 key ... > */
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,  /* < ... F10 */
+    0,  /* 69 - Num lock*/
+    0,  /* Scroll Lock */
+    0,  /* Home key */
+    0,  /* Up Arrow */
+    0,  /* Page Up */
+    '-',
+    0,  /* Left Arrow */
+    0,
+    0,  /* Right Arrow */
+    '+',
+    0,  /* 79 - End key*/
+    0,  /* Down Arrow */
+    0,  /* Page Down */
+    0,  /* Insert Key */
+    0,  /* Delete Key */
+    0,   0,   0,
+    0,  /* F11 Key */
+    0,  /* F12 Key */
+    0,  /* All other keys are undefined */
+    };
+
+    return kbd_US[scancode];
 }
 
-static char translate(uint16_t key)
-{
-  if (capsLock && !shift)
-    return capKeys[key];
-  else if (capsLock && shift)
-    return shiftCapKeys[key];
-  else if (!capsLock && !shift)
-    return keys[key];
-  else
-    return shiftedKeys[key];
+unsigned char kb_getChar(){
+    if(readIdx == writeIdx)
+        return 0;
+    unsigned char key = buffer[readIdx];
+    readIdx = (readIdx + 1) % MAX_SIZE;
+    return key;
 }
 
-static void add(char key)
-{
-  buffer[realDim++] = key;
-  if (realDim + 1 == BUFFER_LENGTH)
-  {
-    realDim = 0;
-    last = 0;
-  }
-}
 
-uint64_t readBuffer(char *output, uint64_t count)
-{
-  uint64_t i = 0;
-  for (; i < count && last < realDim && last < BUFFER_LENGTH; i++)
-  {
-    output[i] = buffer[last++];
-  }
-  if (last == BUFFER_LENGTH)
-  {
-    realDim = last = 0;
-  }
-
-  _sti();
-  while (i < count)
-  {
-    if (last < realDim){
-      output[i++] = buffer[last++];
-    }
-  }
-  _cli();
-
-  return i;
-} 

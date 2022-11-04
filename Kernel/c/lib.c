@@ -1,6 +1,6 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <lib.h>
+#include <stdint.h>
 
 void * memset(void * destination, int32_t c, uint64_t length)
 {
@@ -15,6 +15,18 @@ void * memset(void * destination, int32_t c, uint64_t length)
 
 void * memcpy(void * destination, const void * source, uint64_t length)
 {
+	/*
+	* memcpy does not support overlapping buffers, so always do it
+	* forwards. (Don't change this without adjusting memmove.)
+	*
+	* For speedy copying, optimize the common case where both pointers
+	* and the length are word-aligned, and copy word-at-a-time instead
+	* of byte-at-a-time. Otherwise, copy by bytes.
+	*
+	* The alignment logic below should be portable. We rely on
+	* the compiler to be reasonably intelligent about optimizing
+	* the divides and modulos out. Fortunately, it is.
+	*/
 	uint64_t i;
 
 	if ((uint64_t)destination % sizeof(uint32_t) == 0 &&
@@ -38,10 +50,3 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 
 	return destination;
 }
-
-/*int strlen(char *s) {
-    int i = 0;
-    while (s[i] != '\0')
-        i++;
-    return i;
-}*/

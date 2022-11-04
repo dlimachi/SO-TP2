@@ -4,11 +4,11 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <scheduler.h>
-#include <inforeg.h>
-#include <memManager.h>
+#include <memory.h>
+#include <memoryManager.h>
 #include <strings.h>
 #include <naiveConsole.h>
-#include <IOManager.h>
+#include <ioManager.h>
 
 #define NAME_MAX_SIZE 25
 #define FAILED 0
@@ -16,7 +16,7 @@
 
 typedef struct pNode{
     struct pNode * next;
-    uint64_t pid;
+    pid_t pid;
 } pNode;
 
 typedef struct TSem {
@@ -38,7 +38,6 @@ typedef struct semList{
 } semList;
 
 extern uint64_t _xchgLock(uint64_t * lock);
-
 extern uint64_t _unlock(uint64_t * lock);
 
 uint64_t semOpen(char *name, int initialValue);

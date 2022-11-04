@@ -1,11 +1,6 @@
 
 all:  bootloader kernel userland image
 
-gdb: bootloader
-	cd Kernel; make gdb
-	cd Userland; make gdb
-	cd Image; make all
-
 bootloader:
 	cd Bootloader; make all
 
@@ -23,9 +18,5 @@ clean:
 	cd Image; make clean
 	cd Kernel; make clean
 	cd Userland; make clean
-	rm -f report.tasks
 
-pvs: clean
-	./pvs.sh
-
-.PHONY: bootloader image collections kernel gdb userland all clean
+.PHONY: bootloader image collections kernel userland all clean

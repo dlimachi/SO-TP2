@@ -1,20 +1,30 @@
-#ifndef SCHEDULER_H
-#define SCHEDULER_H
+#ifndef _SCHEDULER_H_
+#define _SCHEDULER_H_
 
-#include <stdint.h>
+#include <types.h>
+#include <memory.h>
+#include <memoryManager.h>
+#include <strings.h>
 #include <naiveConsole.h>
 #include <interrupts.h>
-#include <timerDriver.h>
-#include <defs.h>
-#include <strings.h>
-#include <memManager.h>
-#include <IOManager.h>
+#include <ioManager.h>
 
 #define NAME_MAX_SIZE 25
 #define PROCESS_STACK_SIZE 0x1000
 
 #define PROCESS_NAME_PRINT_SIZE 12
 
+/* Representa la cantidad de ticks que ejecuta un proceso de prioridad minima
+ * (19) antes de ser cambiado por el scheduler. Recordemos que cada tick dura
+ * 0.55 ms. La formula de ticks por proceso (o 'tickets') es la siguiente:
+ * 
+ * tickets = (MIN_PRIORITY + 1 - PRIORITY) * TQ
+ * 
+ * Esto implica que el tiempo de ejecucion en cada vuelta sera:
+ * 
+ * t_exec = (MIN_PRIORITY + 1 - PRIORITY) * TQ * 0.55ms = tickets * 0.55ms
+ * 
+ *  */
 #define TQ 1 
 #define MAX_PRIORITY 0
 #define MIN_PRIORITY 19
@@ -54,7 +64,7 @@ typedef struct processContext{
     void * allocated[10];
     int argc;
     char ** argv;
-    uint64_t pid;
+    pid_t pid;
     uint64_t rsp;
     uint64_t rbp;
     uint8_t priority; // Guardamos priority como un byte porque toma valores entre 0 y 20
@@ -78,52 +88,27 @@ typedef struct processList{
 } processList;
 
 extern void timerInterrupt();
-
 extern void _hlt();
-
-void initializeScheduler();
-
-void initScheduler();
-
-void createFirstProcess();
-
-uint64_t createProcess(void (*pFunction)(int, char **), int argc, char **argv, int * fd, mode processMode);
-
+int changeProcessState(pid_t pid, states state);
 void forceExitAfterExec(int argc, char *argv[], void *processFn(int, char **));
-
-uint64_t schedule(uint64_t rsp);
-
-uint64_t getPid();
-
-uint64_t block(uint64_t pid);
-
-uint64_t unblock(uint64_t pid);
-
-uint64_t kill(uint64_t pid);
-
-int exists(uint64_t pid);
-
-void wait(uint64_t pid);
-
-uint64_t toggleBlocked(uint64_t pid);
-
+pid_t getPid();
+uint64_t block(pid_t pid);
+uint64_t unblock(pid_t pid);
+uint64_t kill(pid_t pid);
+uint64_t toggleBlocked(pid_t pid);
 void printAllProcessesInfo();
-
+void nice(pid_t pid, uint8_t newPriority);
+void initScheduler();
+uint64_t scheduler(uint64_t prevRsp);
+void createFirstProcess();
+pid_t createProcess(void (*pFunction)(int, char **), int argc, char **argv, int * fd, mode processMode);
 void yield();
-
-uint64_t nice(uint64_t pid, uint64_t newPriority);
-
-void forceTimerTick();
-
-uint64_t setupStack(uint64_t startStack, uint64_t loader, uint64_t argc, uint64_t argv, uint64_t rip);
-
+int exists(pid_t pid);
+void wait(pid_t pid);
 int getFdIn();
-
 int getFdOut();
-
 int getProcessMode();
-
 process * getExecutingP();
 
 
-#endif //SCHEDULER_H
+#endif

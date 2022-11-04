@@ -1,5 +1,5 @@
-#ifndef INTERRUPS_H_
-#define INTERRUPS_H_
+#ifndef INTERRUPTS_H_
+#define INTERRUPTS_H_
 
 #include <idtLoader.h>
 
@@ -25,8 +25,7 @@ void picMasterMask(uint8_t mask);
 
 void picSlaveMask(uint8_t mask);
 
+//Termina la ejecución de la cpu.
 void haltcpu(void);
 
-void _endhaltcpu(void);
-
-#endif /* INTERRUPS_H_ */
+#endif /* INTERRUPTS_H_ */
