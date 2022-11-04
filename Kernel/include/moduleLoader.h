@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <lib.h>
+#include <moduleLoader.h>
 #include <naiveConsole.h>
 
 void loadModules(void * payloadStart, void ** moduleTargetAddress);
