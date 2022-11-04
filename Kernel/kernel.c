@@ -1,14 +1,15 @@
+#include <stdint.h>
+#include <strings.h>
 #include <lib.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
+#include <keyboardDriver.h>
+#include <exceptions.h>
 #include <idtLoader.h>
-#include <memManager.h>
 #include <scheduler.h>
 #include <interrupts.h>
 #include <semaphores.h>
-#include <stdint.h>
 #include <pipe.h>
-#include <exceptions.h>
 #include <IOManager.h>
 
 extern uint8_t text;
