@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <test_util.h>
+#include <mysyscall.h>
 #include <syscall.h>
 
 #define SEM_ID "sem"

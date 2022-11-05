@@ -2,8 +2,10 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <test_util.h>
 #include <stdio.h>
+#include <mysyscall.h>
 #include <syscall.h>
 #include <strings.h>
+
 
 //Random
 static uint32_t m_z = 362436069;

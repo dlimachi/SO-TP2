@@ -2,8 +2,9 @@
 #define _PHYLO_H
 
 #include <strings.h>
+#include <mystdio.h>
+#include <mysyscall.h>
 #include <stdio.h>
-#include <syscall.h>
 
 #define INITIAL_PHYL 5
 #define MAX_PHYL 10
