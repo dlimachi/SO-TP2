@@ -7,7 +7,7 @@
 #include <strings.h>
 #include <naiveConsole.h>
 #include <interrupts.h>
-#include <ioManager.h>
+#include <IOManager.h>
 
 #define NAME_MAX_SIZE 25
 #define PROCESS_STACK_SIZE 0x1000

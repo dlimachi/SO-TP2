@@ -9,7 +9,7 @@
 #include <scheduler.h>
 #include <semaphores.h>
 #include <pipes.h>
-#include <ioManager.h>
+#include <IOManager.h>
 
 extern void saveRegisterInfo();
 

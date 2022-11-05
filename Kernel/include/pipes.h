@@ -8,7 +8,7 @@
 #include <memoryManager.h>
 #include <strings.h>
 #include <semaphores.h>
-#include <ioManager.h>
+#include <IOManager.h>
 
 #define BUFFER_SIZE 1024
 #define PIPE_NAME_SIZE 25

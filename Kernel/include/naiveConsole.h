@@ -42,6 +42,8 @@ void ncScrollUp();
 
 void ncBackspace();
 
+void ncNewline();
+
 void ncPrintDec(uint64_t value);
 void ncPrintHex(uint64_t value);
 void ncPrintBin(uint64_t value);

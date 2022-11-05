@@ -8,7 +8,7 @@
 #include <memoryManager.h>
 #include <strings.h>
 #include <naiveConsole.h>
-#include <ioManager.h>
+#include <IOManager.h>
 
 #define NAME_MAX_SIZE 25
 #define FAILED 0
