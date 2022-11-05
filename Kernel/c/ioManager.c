@@ -1,4 +1,4 @@
-#include <ioManager.h>
+#include <IOManager.h>
 
 void print(char * str){
     printWithColor(str, WHITE_BLACK);
