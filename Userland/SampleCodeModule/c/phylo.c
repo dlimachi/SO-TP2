@@ -64,15 +64,15 @@ void phylo_main() {
         while (sys_exists(philoPids[i])){
             c = getCharOrNull();
             if(c == ADD_PHILO_KEY){
-                sys_sem_wait(CAN_CHANGE_SEM);
+                //sys_sem_wait(CAN_CHANGE_SEM);
                 addPhil();
-                sys_sem_post(CAN_CHANGE_SEM);
+                //sys_sem_post(CAN_CHANGE_SEM);
             }
             else if (c == REMOVE_PHILO_KEY){
                 if (philoCount > MIN_PHYLOS) {
-                    sys_sem_wait(CAN_CHANGE_SEM);
+                    //sys_sem_wait(CAN_CHANGE_SEM);
                     removePhil();
-                    sys_sem_post(CAN_CHANGE_SEM);
+                    //sys_sem_post(CAN_CHANGE_SEM);
                 }
             }
         }
@@ -83,7 +83,7 @@ void phylo_main() {
         sys_sem_close(forks[i]);
     
     sys_sem_close(ROOM_SEM_NAME);
-    sys_sem_close(CAN_CHANGE_SEM);
+    //sys_sem_close(CAN_CHANGE_SEM);
 
     philoCount = 0;
 }
