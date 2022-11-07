@@ -1,16 +1,33 @@
-#ifndef KEYBOARD_DRIVER_H
-#define KEYBOARD_DRIVER_H
+#ifndef __keyboardDriver_H_
+#define __keyboardDriver_H_
 
-#include <idtLoader.h>
 #include <naiveConsole.h>
-#include <lib.h>
-#include <scheduler.h>
-#include <inforeg.h>
 
+/**
+ * Devuelve verdadero mientras el teclado este activado
+**/
 extern int keyboardActivated();
+
+/**
+ * Devuelve el scancode de la tecla presionada
+**/
 extern unsigned char getPressedKey();
 
-int keyboard_handler(uint64_t * registers);
-uint64_t readBuffer(char* output, uint64_t count);
+/**
+ * Cuando se presiona una tecla, se genera una interrupcion que llama a 
+ * esta funcion. Se guarda el ascii de la tecla en el buffer.
+**/
+int keyboardHandler();
 
-#endif 
+/**
+ * Devuelve el scancode de la tecla presionada
+**/
+unsigned char scancodeToAscii(int scancode);
+
+/**
+ *  Devuelve el primer caracter del buffer
+**/
+unsigned char kb_getChar();
+
+
+#endif

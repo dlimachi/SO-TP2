@@ -1,11 +1,19 @@
-#ifndef IRQDISPATCHER_H
-#define IRQDISPATCHER_H
+#ifndef __irqDispatcher_H_
+#define __irqDispatcher_H_
 
-#include <keyboardDriver.h>
-#include <timerDriver.h>
+#include <time.h>
 #include <stdint.h>
+#include <keyboardDriver.h>
 
-void irqDispatcher(uint64_t irq, uint64_t * registers);
+/**
+ * Rutina para la interrupcion 20 (Timer Tick)
+**/
 static void int_20();
-static void int_21(uint64_t * registers);
+
+/**
+ * Rutina para la interrupcion 21 (Teclado)
+**/
+static void int_21();
+
 #endif
+

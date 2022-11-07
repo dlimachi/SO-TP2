@@ -1,19 +1,13 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <syscallDispatcher.h>
-#include <scheduler.h>
 
-static uint64_t sys_read(unsigned int fd,char* output, uint64_t count);
-static void sys_write(unsigned fd,const char* buffer, uint64_t count);
-static void sys_time(time_t * s);
-static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
-
-uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9, uint64_t * registers) {
+uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9) {
 	switch (rdi) {																	
 		case 0:
 			return readHandler(STDIN); 													
 		case 1:
-			putChar((char) rsi); 					
+			putCharWithColor((char) rsi, (unsigned char)rdx); 					
 			return 1;																
 		case 2:
 			return getTime(rsi);													
@@ -95,7 +89,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rc
 		case 34:
 			return readHandler((int)rsi);
 		case 35:
-			return writeStrHandler((int) rsi, (char *) rdx);
+			return writeStrHandler((int) rsi, (char *) rdx, DEFAULT_COLOR);
 		case 36:
 			putChar((char) rsi);
 			return 36;
@@ -106,53 +100,11 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rc
 			printWithColor((char *)rsi, (uint8_t)rdx);
 			return 38;
 		case 39:
-			return writeCharHandler((int) rsi, (char) rdx);
+			return writeCharHandler((int) rsi, (char) rdx, DEFAULT_COLOR);
 		case 40:
 			return getProcessMode();
 	}
+    // Por default devuelve 0
 	return 0;
 }
 
-
-static uint64_t sys_read(unsigned int fd,char* output, uint64_t count){
-    switch (fd)
-    {
-    case STDIN:
-        return readBuffer(output, count);
-        break;
-    
-    default:
-        return 0;
-    }
-}
-
-static void sys_write(unsigned fd,const char* buffer, uint64_t count){
-    uint64_t i = 0;
-    while (i < count)
-    {
-        switch(fd){
-            case STDOUT:
-                ncPrintChar(buffer[i]);
-                break;
-            case STDERR:
-                ncPrintCharFormat(buffer[i], ERROR_FORMAT);
-                break;
-            default:
-                return;
-        }
-        i++;
-    }
-}
-
-static void sys_time(time_t * s){
-    s->day = localDay();
-    s->month = localMonth();
-    s->year = localYear();
-    s->hours = localHours();
-    s->minutes = getMinutes();
-    s->seconds = getSeconds();
-}
-
-static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length){
-    memcpy((void*)buffer, (void*)address, length);
-}

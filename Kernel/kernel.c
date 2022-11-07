@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <stdint.h>
 #include <strings.h>
 #include <lib.h>
@@ -9,8 +11,9 @@
 #include <scheduler.h>
 #include <interrupts.h>
 #include <semaphores.h>
-#include <pipe.h>
+#include <pipes.h>
 #include <IOManager.h>
+
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -57,18 +60,6 @@ void * initializeKernelBinary()
 
 int main()
 {	
-/*	ncClear();
-    // TODO decide actual location and size of heap
-    createMemoryManager((void*)0x900000, 16384);
-    initializeScheduler();
-    char *argv[] = {"bash"};
-    createProcess((void (*)(int, char **))sampleCodeModuleAddress, 1, (char **) &argv);
-	load_idt();
-    forceTimerTick();
-//	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
-	ncPrint("[Finished]");
-	return 0;
-	*/
 	load_idt();
 	ncClear();
 
@@ -89,6 +80,7 @@ int main()
 	((EntryPoint)sampleCodeModuleAddress)();
 	/* No vuelve a este punto despues de que se borra firstProcess */
 	while(1);
+	printWithColor("Game over\n", RED_BLACK);
 	
 	return 0;
 }

@@ -21,25 +21,12 @@ void exceptionDispatcher(int exception, uint64_t *registers) {
 	restartTerminal(registers);
 }
 
-static void printRegisters(uint64_t rip, uint64_t rsp, const uint64_t * backup){
-	ncNewline();
-	ncPrintFormat("RIP:", ERROR_FORMAT);
-	ncPrintHex(rip);
-	ncPrintFormat(" RSP:", ERROR_FORMAT);
-	ncPrintHex(rsp);
-	for (int i = 14; i >= 0; i--)
-	{
-		ncPrintFormat(registers[14-i], ERROR_FORMAT);
-		ncPrintHex(backup[i]);
-	}
-}
-
 void zeroDivision() {
-	ncPrintFormat("ERROR: Zero division.", ERROR_FORMAT);
+	print("ERROR DIVIDE BY 0 EXCEPTION\n");
 }
 
 void invalidOpcode() {
-	ncPrintFormat("ERROR: Invalid operation code.", ERROR_FORMAT);
+	print("ERROR INVALID OPCODE EXCEPTION\n");
 }
 
 void saveInitialState(uint64_t IP, uint64_t SP){
