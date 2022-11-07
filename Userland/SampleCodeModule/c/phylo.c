@@ -95,6 +95,18 @@ void philosopher(int argc, char ** argv){
     int lFork = id;
     int rFork = (id+1) % philoCount;
 
+    sys_sem_wait(ROOM_SEM_NAME);
+    sys_sem_wait(forks[lFork]);
+    sys_sem_wait(forks[rFork]);
+
+    eat(id);
+    leave(id);
+
+    sys_sem_post(forks[lFork]);
+    sys_sem_post(forks[rFork]);
+    sys_sem_post(ROOM_SEM_NAME);
+
+/*
     while (1) {
         sys_sem_wait(ROOM_SEM_NAME);
         sys_sem_wait(forks[lFork]);
@@ -129,7 +141,7 @@ void philosopher(int argc, char ** argv){
         sys_sem_post(forks[lFork]);
         sys_sem_post(forks[rFork]);
         sys_sem_post(ROOM_SEM_NAME);
-    }
+    }*/
 }
 
 static void eat(int id){
