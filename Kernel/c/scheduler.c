@@ -383,10 +383,6 @@ pid_t getPid(){
 /* Se mata un proceso segun su PID, eliminando sus recursos. Devuelve 1 si fue
  * exitoso o 0 en caso de error */
 uint64_t kill(pid_t pid){
-    //ncPrint(" ENTRO EL PROCESO: ");
-    //ncPrintDec(pid);
-    //ncNewline();
-
     if(pid < 1)
         return 0;
 

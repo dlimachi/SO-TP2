@@ -59,7 +59,7 @@ void phylo_main() {
 
     /* Mientras algun filosofo siga comiendo, se podran agregar o quitar filosofos
      * en tiempo de ejecucion */
-    println("Escribir 'a' para agregar, escribir 'r' para borrar, escribir 'x' para salir.");
+    print("Escribir 'a' para agregar, escribir 'r' para borrar, escribir 'x' para salir.");
     for (int i = 0; i < MAX_PHYL; i++){
         char c;
         while (sys_exists(philoPids[i])){
