@@ -120,7 +120,7 @@ static void printStatus(){
             putCharWithColor(status[i], ORANGE_BLACK);
         }*/
         if (status[i] == EATING_CHAR)
-            putChar('E') 
+            putChar('XX') 
         else
             putChar('.');
             
