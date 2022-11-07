@@ -1,5 +1,6 @@
-#ifndef _SYSCALL_H
-#define _SYSCALL_H
+#ifndef _MYSYSCALL_H
+#define _MYSYSCALL_H
+#include <mystdio.h>
 
 typedef enum {BACKGROUND, FOREGROUND} mode;
 

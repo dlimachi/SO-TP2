@@ -1,10 +1,12 @@
 #ifndef _TERMINAL_H_
 #define _TERMINAL_H_
 
+#include <mystdio.h>
 #include <stdio.h>
 #include <strings.h>
 #include <tests.h>
 #include <processes.h>
+#include <mysyscall.h>
 #include <syscall.h>
 
 #define COMMANDS_COUNT 23
