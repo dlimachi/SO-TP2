@@ -109,7 +109,7 @@ static void leave(int id){
 
 static void printStatus(){
     for (int i = 0; i < philoCount; i++){
-        switch (status[i]){
+         /*switch (status[i]){
         case EATING_CHAR:
             putCharWithColor(status[i], CYAN_BLACK);
             break;
@@ -118,7 +118,12 @@ static void printStatus(){
             break;
         default:
             putCharWithColor(status[i], ORANGE_BLACK);
-        }
+        }*/
+        if (status[i] == EATING_CHAR)
+            putChar('E') 
+        else
+            putChar('.');
+            
         putChar(' ');
     }
     putChar('\n');
