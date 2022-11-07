@@ -66,13 +66,13 @@ void phylo_main() {
             if(c == ADD_PHILO_KEY){
                 sys_sem_wait(CAN_CHANGE_SEM);
                 addPhil();
-                semPost(CAN_CHANGE_SEM);
+                sys_sem_post(CAN_CHANGE_SEM);
             }
             else if (c == REMOVE_PHILO_KEY){
-                if (total > MIN_PHYLOS) {
+                if (philoCount > MIN_PHYLOS) {
                     sys_sem_wait(CAN_CHANGE_SEM);
                     removePhil();
-                    semPost(CAN_CHANGE_SEM);
+                    sys_sem_post(CAN_CHANGE_SEM);
                 }
             }
         }
@@ -86,8 +86,6 @@ void phylo_main() {
     sys_sem_close(CAN_CHANGE_SEM);
 
     philoCount = 0;
-
-    _exit(0);
 }
 
 void philosopher(int argc, char ** argv){
@@ -105,8 +103,8 @@ void philosopher(int argc, char ** argv){
             lFork = (id+1) % philoCount;
             rFork = id;
         } else {
-            first = id;
-            second = (id-1) % philoCount;
+            lFork = id;
+            rFork = (id-1) % philoCount;
         }
 
         for (uint64_t i = 0; i < 50000000; i++);
@@ -121,7 +119,7 @@ void philosopher(int argc, char ** argv){
         for (int i = 0; i < philoCount; i++) {
             printStatus();
         }
-        println("");
+        print("");
 
         for (uint64_t i = 0; i < 50000000; i++);
 
@@ -157,7 +155,7 @@ static void printStatus(){
             putCharWithColor(status[i], ORANGE_BLACK);
         }*/
         if (status[i] == EATING_CHAR)
-            putChar('E') 
+            putChar('E'); 
         else
             putChar('.');
             
