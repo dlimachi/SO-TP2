@@ -63,19 +63,31 @@ void phylo_main() {
         char c;
         while (sys_exists(philoPids[i])){
             c = getCharOrNull();
-            if(c == ADD_PHILO_KEY)
+            if(c == ADD_PHILO_KEY){
+                sys_sem_wait(CAN_CHANGE_SEM);
                 addPhil();
-            else if (c == REMOVE_PHILO_KEY)
-                removePhil();
+                semPost(CAN_CHANGE_SEM);
+            }
+            else if (c == REMOVE_PHILO_KEY){
+                if (total > MIN_PHYLOS) {
+                    sys_sem_wait(CAN_CHANGE_SEM);
+                    removePhil();
+                    semPost(CAN_CHANGE_SEM);
+                }
+            }
         }
     }
     
     /* Antes de terminar, cerramos todos los semaforos */
     for (int i = 0; i < MAX_PHYL; i++)
         sys_sem_close(forks[i]);
+    
     sys_sem_close(ROOM_SEM_NAME);
+    sys_sem_close(CAN_CHANGE_SEM);
 
     philoCount = 0;
+
+    _exit(0);
 }
 
 void philosopher(int argc, char ** argv){
@@ -84,16 +96,41 @@ void philosopher(int argc, char ** argv){
     int lFork = id;
     int rFork = (id+1) % philoCount;
 
-    sys_sem_wait(ROOM_SEM_NAME);
-    sys_sem_wait(forks[lFork]);
-    sys_sem_wait(forks[rFork]);
+    while (1) {
+        sys_sem_wait(ROOM_SEM_NAME);
+        sys_sem_wait(forks[lFork]);
+        sys_sem_wait(forks[rFork]);
 
-    eat(id);
-    leave(id);
+        if (id % 2 == 0) {
+            lFork = (id+1) % philoCount;
+            rFork = id;
+        } else {
+            first = id;
+            second = (id-1) % philoCount;
+        }
 
-    sys_sem_post(forks[lFork]);
-    sys_sem_post(forks[rFork]);
-    sys_sem_post(ROOM_SEM_NAME);
+        for (uint64_t i = 0; i < 50000000; i++);
+
+        sys_sem_wait(forks[lFork]);
+        sys_sem_wait(forks[rFork]);
+
+        status[id] = 1;
+        eat(id);
+        leave(id);
+
+        for (int i = 0; i < philoCount; i++) {
+            printStatus();
+        }
+        println("");
+
+        for (uint64_t i = 0; i < 50000000; i++);
+
+        status[id] = 0;
+
+        sys_sem_post(forks[lFork]);
+        sys_sem_post(forks[rFork]);
+        sys_sem_post(ROOM_SEM_NAME);
+    }
 }
 
 static void eat(int id){
