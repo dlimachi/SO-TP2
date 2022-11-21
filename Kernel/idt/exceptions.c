@@ -1,40 +1,25 @@
-// This is a personal academic project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#ifndef EXCEPTIONS
+#define EXCEPTIONS 
+
+#include <registers.h>
+#include <stdint.h>
+#include <IO_driver.h>
 #include <exceptions.h>
+#include <video_driver.h>
 
-static initialState initS;
-
-void exceptionDispatcher(int exception, uint64_t *registers) {
-	switch(exception){
-		case ZERO_EXCEPTION_ID:
-			zeroDivision();
-			break;
-		case INVALID_OPCODE_EXCEPTION_ID:
-			invalidOpcode();
-			break;
-		default:
-			return;
-	}
-	saveRegisterInfo();
-	getRegistersInfo();
-
-	restartTerminal(registers);
+void exc_0h(registerStruct * registers) {
+  saveErrCode(0);
+  saveRegisters(registers);
 }
 
-void zeroDivision() {
-	print("ERROR DIVIDE BY 0 EXCEPTION\n");
+void exc_6h(registerStruct * registers) {
+  saveErrCode(6);
+  saveRegisters(registers);
 }
 
-void invalidOpcode() {
-	print("ERROR INVALID OPCODE EXCEPTION\n");
+void readError(uint64_t * target) {
+  uint64_t error = getErrCode();
+  *target = error;
 }
 
-void saveInitialState(uint64_t IP, uint64_t SP){
-	initS.IP = IP;
-	initS.SP = SP;
-}
-
-void restartTerminal(uint64_t *registers){
-	registers[IP_INDEX] = initS.IP;
-	registers[SP_INDEX] = initS.SP;
-}
+#endif

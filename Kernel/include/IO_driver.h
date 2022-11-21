@@ -5,7 +5,7 @@
 #include <registers.h>
 #include <scheduler.h>
 #include <pipes.h>
-#include <syscalls.h>
+#include <syscallDispatcher.h>
 #include <keyboardDriver.h>
 
 #define ERROR -1
