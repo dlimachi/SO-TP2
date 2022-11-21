@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <video_driver.h>
 #include <stddef.h>
-#include <memManager.h>
+#include <memoryManager.h>
 
 #define HEAP_SIZE (1024*1024*64)
 

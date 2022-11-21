@@ -2,7 +2,7 @@
 #define CIRCULAR_LIST_ADT_H
 
 #include <stddef.h>
-#include <memManager.h>
+#include <memoryManager.h>
 #include <lib.h>
 
 typedef struct listCDT *listADT;
