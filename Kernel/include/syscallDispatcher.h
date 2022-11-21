@@ -10,12 +10,17 @@
 #include <semaphores.h>
 #include <pipes.h>
 #include <IOManager.h>
+#include <registers.h>
+#include <processes.h>
+#include <video_driver.h>
+#include <time.h>
+#include <font.h>
+#include <IO_driver.h>
+#include <exceptions.h>
+#include <memoryManager.h>
+#include <lib.h>
 
-extern void saveRegisterInfo();
-
-/**
- * Deriva el numero de syscall (en rdi) a la rutina correspondiente y le transfiere sus parametros 
-**/
-uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9);
+int syscallHandler(registerStruct * registers);
+void writeStr(registerStruct * registers);
 
 #endif

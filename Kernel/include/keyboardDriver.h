@@ -2,32 +2,27 @@
 #define __keyboardDriver_H_
 
 #include <naiveConsole.h>
+#include <registers.h>
+#include <stdint.h>
 
-/**
- * Devuelve verdadero mientras el teclado este activado
-**/
-extern int keyboardActivated();
+#define CTRL_L 29
+#define SHIFT_L 42
+#define SHIFT_R 54
 
-/**
- * Devuelve el scancode de la tecla presionada
-**/
-extern unsigned char getPressedKey();
+#define BLOCK_M 58
 
-/**
- * Cuando se presiona una tecla, se genera una interrupcion que llama a 
- * esta funcion. Se guarda el ascii de la tecla en el buffer.
-**/
-int keyboardHandler();
+#define KEY_RELEASED 128
+#define KEYS 59
 
-/**
- * Devuelve el scancode de la tecla presionada
-**/
-unsigned char scancodeToAscii(int scancode);
+#define F1 59
+#define F12 88
 
-/**
- *  Devuelve el primer caracter del buffer
-**/
-unsigned char kb_getChar();
+void keyboardHandler(registerStruct *);
+void readKeyboard(char * buff, uint64_t size, uint64_t * count);
+void bufferEmpty(uint64_t * target);
+void isMayus(uint64_t * target);
+void initializeFunctionKeys();
+void setFunctionKeyMethod(uint64_t index, void (*function)());
 
 
 #endif

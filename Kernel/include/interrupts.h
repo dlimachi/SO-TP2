@@ -2,6 +2,7 @@
 #define INTERRUPTS_H_
 
 #include <idtLoader.h>
+#include <stdint.h>
 
 void _irq00Handler(void);
 void _irq01Handler(void);
@@ -21,11 +22,19 @@ void _sti(void);
 
 void _hlt(void);
 
-void picMasterMask(uint8_t mask);
-
 void picSlaveMask(uint8_t mask);
+
+void picMasterMask(uint8_t mask);
 
 //Termina la ejecución de la cpu.
 void haltcpu(void);
+
+void saveInitialConditions(void* address);
+
+void _sendEOI(void);
+
+uint64_t * createProcessInt(void (*)(),uint64_t *,uint64_t,char **);
+
+void goToProcess(uint64_t *);
 
 #endif /* INTERRUPTS_H_ */
