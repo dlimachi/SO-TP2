@@ -1,334 +1,207 @@
 #include <pipes.h>
 
-static void enqPipe(TPipe * pipe);
-static TPipe * deqPipe();
-static TPipe * getPipe(char * name);
-static int * createPipe(char *name, int id);
-static int generateNewFd();
-static TPipe * getPipeWithFd(int fd, int fdType);
+static int findPipe(uint32_t id);
+static int getAvailablePipe();
+static int createPipe(uint32_t id);
+static int writeCharPipe(int pipeIdx, char c) ;
 
-static char * handlerSemName = "pipesHandler";
-static pipeList * pipesList;
-static int lastFdGenerated = 2;
+pipe_t pipes[MAX_PIPES];
+// Semaphore id
+uint32_t sem_id = 200; // Notify user of the id of pipes' semaphores
+unsigned int pipesCount = 0;
 
-void initPipes(){
-    if(semOpen(handlerSemName, 1) == FAILED){
-        print("ERROR: failed to open semaphore in 'initPipes()'\n");
+void pipeOpen(uint32_t id, int *toReturn) {
+    int pipeIdx = findPipe(id);
+
+    // Check if pipe exists
+    if(pipeIdx == ERROR) {
+        pipeIdx = createPipe(id);
+
+        // Check if created
+        if(pipeIdx == ERROR) {
+            *toReturn = ERROR;
+            return;
+        } 
+    }
+
+    pipes[pipeIdx].processCount++;
+
+    *toReturn = id;
+}
+
+// When pipe closed, the memory assigned to semaphore will be freed
+void pipeClose(uint32_t id, int *toReturn) {
+    int pipeIdx = findPipe(id);
+
+    // Check if pipe exists
+    if(pipeIdx == ERROR) {
+        *toReturn =ERROR;
         return;
     }
-    pipesList = malloc(sizeof(pipeList));
-    pipesList->first = NULL;
-    pipesList->last = NULL;
-    pipesList->size = 0;
-}
+    
+    pipes[pipeIdx].processCount--;
 
-static void enqPipe(TPipe * pipe) {
-    if(pipe == NULL || pipesList == NULL)
+    if(pipes[pipeIdx].processCount > 0) {
+        *toReturn = 0;
         return;
+    }
+
+    int readClose, writeClose;
+    closeSemaphore(pipes[pipeIdx].readSem, &readClose);
+    closeSemaphore(pipes[pipeIdx].writeSem, &writeClose);
+
+    if(readClose == ERROR || writeClose == ERROR) {
+        *toReturn = -1;
+        return;
+    }
+
+    pipes[pipeIdx].state = PIPE_FREE;
+    pipesCount--;
+    *toReturn = readClose;
+}
+
+void pipeRead(uint32_t id, char *str, int *toReturn) {
+    int pipeIdx = findPipe(id);
+
+    // Check if pipe exists
+    if(pipeIdx == ERROR) {
+        *toReturn = ERROR;
+        return;
+    }
     
-    if(pipesList->first == NULL)
-        pipesList->first = pipe;
-    else
-        pipesList->last->next = pipe;
+    waitSemaphore(pipes[id].readSem, toReturn);
+
+    *str = pipes[pipeIdx].buffer[ pipes[pipeIdx].readIdx ];
+    pipes[pipeIdx].readIdx = (pipes[pipeIdx].readIdx + 1) % PIPE_BUF_SIZE;
+
+    postSemaphore(pipes[id].writeSem, toReturn);
+}
+
+void pipeWrite(uint32_t id, char *str, int *toReturn) {
+    int pipeIdx = findPipe(id);
+
+    // Check if pipe exists
+    if(pipeIdx == ERROR) {
+        *toReturn = ERROR;
+        return;
+    }
+    while(*str != 0) {
+        writeCharPipe(pipeIdx, *str++);
+    }
+    *toReturn = 0;
+}
+
+static int writeCharPipe(int pipeIdx, char c) {
+    pipe_t toWrite = pipes[pipeIdx];
+
+    int ans;
+
+    waitSemaphore(toWrite.writeSem, &ans);
     
-    pipesList->last = pipe;
+    if(ans == ERROR)
+        return ans;
 
-    pipe->next = NULL;
+    toWrite.buffer[toWrite.writeIdx] = c;
+    toWrite.writeIdx++;
 
-    pipesList->size++;
+    int aux = 0;
+
+    postSemaphore(toWrite.readSem, &aux);
+    
+    return aux;
 }
 
-static TPipe * deqPipe() {
 
-    if(pipesList == NULL || pipesList->size == 0)
-        return NULL;
+static int createPipe(uint32_t id) {
+    int pipeIdx = getAvailablePipe();
 
-    TPipe * deq = pipesList->first;
+    if(pipeIdx == ERROR)
+        return ERROR;
+    
+    pipes[pipeIdx].id = id;
+    pipes[pipeIdx].readIdx = 0;
+    pipes[pipeIdx].writeIdx = 0;
+    pipes[pipeIdx].processCount = 0;
+    pipes[pipeIdx].state = PIPE_IN_USE;
 
-    if(pipesList->size == 1){
-        pipesList->first = NULL;
-        pipesList->last = NULL;
-    } else {
-        pipesList->first = deq->next;
+    // Check if semaphores were created
+    openSemaphore(sem_id++, 0, &pipes[pipeIdx].readSem);
+    openSemaphore(sem_id++, PIPE_BUF_SIZE, &pipes[pipeIdx].writeSem);
+    if(pipes[pipeIdx].readSem == ERROR || pipes[pipeIdx].writeSem == ERROR) {
+        return ERROR;
     }
 
-    deq->next = NULL;
+    pipesCount++;
 
-    pipesList->size--;
-    return deq;
+    return id;
 }
 
-static int * createPipe(char *name, int id){
-    TPipe* new = malloc(sizeof(TPipe));
-
-    if(new == NULL)
-        return NULL;
-
-    new->fds[0] = generateNewFd();
-    new->fds[1] = generateNewFd();
-
-    memcpy(new->name, name, strlen(name)+1);
-
-    new->readIndex = 0;
-    new->writeIndex = 0;
-
-    char rSem[NAME_MAX_SIZE];
-    int lenght = strlen(READ_SEM_NAME);
-    memcpy(rSem, READ_SEM_NAME, lenght+1);
-    rSem[lenght] = id + '0';
-    rSem[lenght+1] = 0;
-    int sr = semOpen(rSem, 0);
-
-    char wSem[NAME_MAX_SIZE];
-    lenght = strlen(WRITE_SEM_NAME);
-    memcpy(wSem, WRITE_SEM_NAME, lenght+0);
-    wSem[lenght] = id + '0';
-    wSem[lenght+1] = 0;
-    int sw = semOpen(wSem, 1);
-
-    if(sr == FAILED || sw == FAILED){
-        print("Error abriendo semaforos en createPipe\n");
-        return NULL;
+// Returns position of pipe in the array
+static int findPipe(uint32_t id) {
+    for(int i = 0; i < MAX_PIPES; i++) {
+        if(pipes[i].state == PIPE_IN_USE && pipes[i].id == id)
+            return i;
     }
-
-    memcpy(new->readSemName, rSem, strlen(rSem)+1);
-    memcpy(new->writeSemName, wSem, strlen(wSem)+1);
-
-    new->numOfProcessesAttached = 0;
-
-
-    enqPipe(new);
-    return new->fds;
+    return ERROR;
 }
 
-static TPipe * getPipe(char * name){
-    TPipe * aux = pipesList->first;
-
-    for(int i = 0; i < pipesList->size; i++){
-        if(strcmp(name, aux->name) == 0){
-            return aux;}
-        aux = aux->next;
-    }
-    return NULL;
-}
-
-int * pipeOpen(char *name){
-    if (semWait(handlerSemName) == FAILED){
-        print("Error semWait en pipeOpen\n");
-        return FAILED;
-    }
-
-    int * fds;
-    TPipe * toOpen = getPipe(name);
-    if (toOpen == NULL){
-        fds = createPipe(name, pipesList->size+1);
-        if(fds == NULL){
-            print("Error creando pipe en pipeOpen\n");
+// Get position of the array where there is no used pipe
+static int getAvailablePipe() {
+    for(int i = 0; i < MAX_PIPES; i++) {
+        if(pipes[i].state == PIPE_FREE) {
+            return i;
         }
-    } else{
-        toOpen->numOfProcessesAttached++;
-        fds = toOpen->fds;
     }
-    
-    semPost(handlerSemName);
-    return fds;
+    return ERROR;
 }
 
-uint64_t pipeClose(char * pipeName){
-    if (semWait(handlerSemName) == FAILED){
-        print("Error semWait en pipeClose\n");
-        return FAILED;
-    }
-
-    TPipe * toClose = getPipe(pipeName);
-    if(toClose == NULL){
-        print("The pipe "); 
-        print(pipeName);
-        print("does not exist\n");
-        return FAILED;
-    }
-
-    uint64_t rs = semClose(toClose->readSemName);
-    uint64_t rw = semClose(toClose->writeSemName);
-
-    if(rs == FAILED || rw == FAILED){
-        print("Error semClose en pipeClose\n");
-        return FAILED;
-    }
-
-    deqPipe(toClose);
-    free(toClose);
-    if (semPost(handlerSemName) == FAILED){
-        print("Error semPost en pipeClose\n");
-        return FAILED;
-    }
-    return SUCCESS;
-}
-
-uint32_t writePipe(char * pipeName, char *str){
-    TPipe * toWrite = getPipe(pipeName);
-    int written = 0;
-    if(toWrite == NULL){
-        print("The pipe "); 
-        print(pipeName);
-        print("does not exist\n");
-        return FAILED;
-    }
-
-    while(*str != 0){
-        if(writeCharInPipe(toWrite, *str++) == FAILED)
-            return FAILED;
-        written++;
-    }
-
-    return written;
-}
-
-uint64_t writeCharInPipe(TPipe * pipe, char c){
-    if(semWait(pipe->writeSemName) == FAILED){
-        print("Error semWait en writeCharInPipe\n");
-        return FAILED;
-    }
-
-    pipe->buffer[pipe->writeIndex % BUFFER_SIZE] = c;
-    pipe->writeIndex++;
-
-    if(semPost(pipe->writeSemName) == FAILED){
-        print("Error semPost en writeCharInPipe\n");
-        return FAILED;
-    }
-    semPost(pipe->readSemName);
-
-    return SUCCESS;
-}
-
-uint64_t writeCharInPipeWithFd(int fd, char c){
-    TPipe * toWrite = getPipeWithFd(fd, FDIN);
-    if(toWrite == NULL)
-        return FAILED;
-
-    if(semWait(toWrite->writeSemName) == FAILED){
-        print("Error semWait en writeCharInPipe\n");
-        return FAILED;
-    }
-
-    toWrite->buffer[toWrite->writeIndex % BUFFER_SIZE] = c;
-    toWrite->writeIndex++;
-
-    if(semPost(toWrite->writeSemName) == FAILED){
-        print("Error semPost en writeCharInPipe\n");
-        return FAILED;
-    }
-    semPost(toWrite->readSemName);
-
-    return SUCCESS;
-}
-
-
-
-uint32_t writeInPipeWithFd(int fd, char *str){
-    TPipe * toWrite = getPipeWithFd(fd, FDIN);
-    int written = 0;
-    if(toWrite == NULL){
-        print("The pipe "); 
-        print(toWrite->name);
-        print("does not exist\n");
-        return FAILED;
-    }
-
-    while(*str != 0){
-        if(writeCharInPipe(toWrite, *str++) == FAILED)
-            return FAILED;
-        written++;
-    }
-    toWrite->buffer[toWrite->writeIndex % BUFFER_SIZE] = 0;
-
-    return written;
-}
-
-char readPipe(char * pipeName){
-    TPipe * toRead = getPipe(pipeName);
-    if(toRead == NULL){
-        print("The pipe "); 
-        print(pipeName);
-        print("does not exist\n");
-        return FAILED;
-    }
-    if(semWait(toRead->readSemName) == FAILED){
-        print("Error semWait en readPipe\n");
-        return FAILED;
-    }
-
-    char toRet = toRead->buffer[toRead->readIndex % BUFFER_SIZE];
-    toRead->readIndex++;
-
-    if(semPost(toRead->readSemName) == FAILED){
-        print("Error semPost en readPipe\n");
-        return FAILED;
-    }
-
-    return toRet;
-}
-
-char readPipeWithFd(int fd){
-    TPipe * toRead = getPipeWithFd(fd, FDOUT);
-    if(toRead == NULL)
-        return FAILED;
-
-    if(semWait(toRead->readSemName) == FAILED){
-        print("Error semWait en readPipe\n");
-        return FAILED;
-    }
-
-    char toRet = toRead->buffer[toRead->readIndex % BUFFER_SIZE];
-    toRead->readIndex++;
-
-    if(semPost(toRead->readSemName) == FAILED){
-        print("Error semPost en readPipe\n");
-        return FAILED;
-    }
-
-    return toRet;
-}
-
-
-
-static TPipe * getPipeWithFd(int fd, int fdType){
-    if(fd < 2 || fd > lastFdGenerated)
-        return NULL;
-    if(fdType != FDIN && fdType != FDOUT)
-        return NULL;
-    
-    TPipe * toRet = pipesList->first;
-    for (int i = 0; i < pipesList->size; i++){
-        if(toRet->fds[fdType] == fd)
-            return toRet;
-    }
-    return NULL;
-}
-
-
-
-void printListOfPipes(){
-    TPipe * toPrint = pipesList->first;
-
-    if(toPrint == NULL){
-        print("No pipes to show\n");
+void printPipes(char *buffer) {
+    unsigned int i = 0;
+    if(pipesCount == 0) {
+        strcat(buffer, "There are no pipes to print", &i);
         return;
     }
-    printWithColor("NAME        FDIN      FDOUT\n", ORANGE_BLACK);
-    for(int i = 0; i < pipesList->size; i++){
-        print(toPrint->name);
-        print("        ");
-        printDec(toPrint->fds[0]);
-        print("          ");
-        printDec(toPrint->fds[1]);
-        print("          ");
-        toPrint = toPrint->next;
-        putChar('\n');
-    }
-}
+    char header[8] = "\nPIPES\n";
+    char subheader[51] = "Pipe ID|\t ReadIdx|\t WriteIdx|\t ReadSem|\t WriteSem\n";
 
-static int generateNewFd(){
-    return lastFdGenerated++;
+    strcat(buffer, header, &i);
+    strcat(buffer, subheader, &i);
+
+    for(int j = 0; j < pipesCount; j++) {
+        
+        if(pipes[j].state) {
+            char aux[11] = {0};
+
+            itoa(pipes[j].id,aux,10);
+            strcat(buffer, aux, &i);
+
+            buffer[i++] = '\t';
+            
+            itoa(pipes[j].readIdx,aux,10);
+            strcat(buffer, aux, &i);
+
+            buffer[i++] = '\t';
+
+            itoa(pipes[j].writeIdx, aux,10);
+            strcat(buffer, aux, &i);
+
+            buffer[i++] = '\t';
+
+            if(pipes[j].readSem == BLOCKED)
+                strcat(buffer, "Y", &i);
+            else
+                strcat(buffer, "N", &i);
+
+            buffer[i++] = '\t';
+
+           if(pipes[j].writeSem == BLOCKED)
+                strcat(buffer, "Y", &i);
+            else
+                strcat(buffer, "N", &i);
+
+            buffer[i++] = '\n';
+        }
+    }
+
+    buffer[i] = '\0';
 }

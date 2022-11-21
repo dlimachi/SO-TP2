@@ -2,49 +2,33 @@
 #define PIPES_H
 
 #include <stdint.h>
-#include <stddef.h>
-#include <scheduler.h>
-#include <memory.h>
-#include <memoryManager.h>
-#include <strings.h>
+#include <lib.h>
 #include <semaphores.h>
-#include <IOManager.h>
 
-#define BUFFER_SIZE 1024
-#define PIPE_NAME_SIZE 25
+#define MAX_PIPES 10
+#define PIPE_BUF_SIZE 1024
+#define ERROR -1
+#define PIPE_IN_USE 1
+#define PIPE_FREE 0
+#define BLOCKED 1
+#define UNBLOCKED 0
 
-#define READ_SEM_NAME "readSem"
-#define WRITE_SEM_NAME "writeSem"
-#define FDIN 0
-#define FDOUT 1
+typedef struct pipe_t {
+    int state;
+    int id;
+    char buffer[PIPE_BUF_SIZE];
+    uint16_t readIdx;
+    uint16_t writeIdx;
+    int readSem;
+    int writeSem;
+    int processCount; // Number of processes using the pipe
+    // int semId;
+} pipe_t;
 
-typedef struct TPipe{
-    struct TPipe * next;
-    int fds[2];
-    char name[PIPE_NAME_SIZE];
-    char buffer[BUFFER_SIZE];
-    uint64_t readIndex;
-    uint64_t writeIndex;
-    char readSemName[PIPE_NAME_SIZE]; 
-    char writeSemName[PIPE_NAME_SIZE]; 
-    int numOfProcessesAttached; // cantidad de procesos que estan usando el pipe
-} TPipe;
-
-typedef struct pipeList{
-    TPipe * first;
-    TPipe * last;
-    int size;
-} pipeList;
-
-void initPipes();
-int * pipeOpen(char *name);
-uint64_t pipeClose(char * pipeName);
-uint32_t writePipe(char * pipeName, char *str);
-char readPipe(char * pipeName);
-char readPipeWithFd(int fd);
-void printListOfPipes();
-uint64_t writeCharInPipe(TPipe * pipe, char c);
-uint32_t writeInPipeWithFd(int fd, char *str);
-uint64_t writeCharInPipeWithFd(int fd, char c);
+void pipeOpen(uint32_t id, int *toReturn);
+void pipeClose(uint32_t id, int *toReturn);
+void pipeRead(uint32_t id, char *str, int *toReturn);
+void pipeWrite(uint32_t id, char *string, int *toReturn);
+void printPipes(char *buffer);
 
 #endif
