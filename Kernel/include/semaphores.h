@@ -6,50 +6,31 @@
 #include <scheduler.h>
 #include <memory.h>
 #include <memoryManager.h>
-#include <strings.h>
-#include <naiveConsole.h>
-#include <IOManager.h>
+#include <lib.h>
 
-#define NAME_MAX_SIZE 25
-#define FAILED 0
-#define SUCCESS 1
+#define MAX_BLOCKED_PID 16
+#define MAX_SEM_COUNT 25
 
-typedef struct pNode{
-    struct pNode * next;
-    pid_t pid;
-} pNode;
+#define SEM_USED 1
+#define SEM_FREE 0
 
-typedef struct TSem {
-    struct TSem * next;
-    char name[NAME_MAX_SIZE];
-    uint64_t lock;
-    int value;
-    // lista de procesos que tiene en un wait
-    pNode * firstProcess;
-    pNode * lastProcess;
-    int waitingProcesses;
-    int openedBy;
-} TSem;
+#define ERROR_CODE -1
 
-typedef struct semList{
-    TSem * first;
-    TSem * last;
-    int size;
-} semList;
+typedef struct semType {
+    int state;
+    uint64_t value;
+    int blockedPIDsQty;
+    uint32_t blockedPIDs[MAX_BLOCKED_PID];
+    uint16_t listeners;
+    uint32_t semId;
+    int mutex;
+} semType;
 
-extern uint64_t _xchgLock(uint64_t * lock);
-extern uint64_t _unlock(uint64_t * lock);
+void openSemaphore(uint32_t id, uint32_t initValue, int *toReturn);
+void waitSemaphore(uint32_t id, int *toReturn);
+void postSemaphore(uint32_t id, int *toReturn);
+void closeSemaphore(uint32_t id, int *toReturn);
+void printSemaphore(char * buffer);
 
-uint64_t semOpen(char *name, int initialValue);
-
-uint64_t semClose(char * semName);
-
-uint64_t semWait(char * semName);
-
-uint64_t semPost(char * semName);
-
-void printListofSemaphores();
-
-void initSemaphores();
 
 #endif

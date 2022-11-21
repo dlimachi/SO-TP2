@@ -1,26 +1,17 @@
-#ifndef _REGISTERS_H
-#define _REGISTERS_H
+#ifndef MEMORY_DRIVER_H
+#define MEMORY_DRIVER_H
 
 #include <stdint.h>
-#include <naiveConsole.h>
-#include <lib.h>
+#include <video_driver.h>
+#include <stddef.h>
+#include <memManager.h>
 
-#define REGISTERS_COUNT 16
+#define HEAP_SIZE (1024*1024*64)
 
-/**
- * Crea un backup del contenido de cada registro
-**/
-void savereg(uint64_t * regInfo);
+void* sbrk(uint64_t size);
+void sbrSyscall(uint64_t size, void** result);
 
-/**
- * Imprime 32 bytes a partir de la direccion de memoria pasada
- * por parametro
-**/
-void printMemory(uint64_t argument);
-
-/**
- * Imprime cada registro con su contenido
-**/
-void getRegistersInfo();
+void* getCurrentMemoryLimit();
+void* getStartMemory();
 
 #endif
