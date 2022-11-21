@@ -1,21 +1,25 @@
-// This is a personal academic project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#ifndef TIME_DRIVER
+#define TIME_DRIVER
+
+#include <stdint.h>
 #include <time.h>
 
-static unsigned long ticks = 0;
+static uint64_t ticks = 0;
 
-void timer_handler() {
-	ticks++;
+void timeHandler() {
+  ticks++;
 }
 
-int ticks_elapsed() {
-	return ticks;
+uint64_t getTicks() {
+  return ticks;
 }
 
-int seconds_elapsed() {
+int secondsElapsed() {
 	return ticks / 18;
 }
 
 int deciseconds_elapsed() {
 	return (int)(ticks / 1.8);
 }
+
+#endif
