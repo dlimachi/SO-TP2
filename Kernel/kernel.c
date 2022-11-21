@@ -13,7 +13,10 @@
 #include <semaphores.h>
 #include <pipes.h>
 #include <IOManager.h>
-
+#include <video_driver.h>
+#include <time.h>
+#include <memoryManager.h>
+#include <rtcDriver.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -26,6 +29,7 @@ static const uint64_t PageSize = 0x1000;
 
 static void * const sampleCodeModuleAddress = (void*)0x400000;
 static void * const sampleDataModuleAddress = (void*)0x500000;
+static void * const startingMemoryAddress = (void*)0x600000;
 
 typedef int (*EntryPoint)();
 
@@ -46,41 +50,85 @@ void * getStackBase()
 
 void * initializeKernelBinary()
 {
+	char buffer[10];
+
+	ncPrint("[x64BareBones]");
+	ncNewline();
+
+	ncPrint("CPU Vendor:");
+	ncPrint(cpuVendor(buffer));
+	ncNewline();
+
+	ncPrint("[Loading modules]");
+	ncNewline();
 	void * moduleAddresses[] = {
 		sampleCodeModuleAddress,
 		sampleDataModuleAddress
 	};
 
 	loadModules(&endOfKernelBinary, moduleAddresses);
+	ncPrint("[Done]");
+	ncNewline();
+	ncNewline();
+
+	ncPrint("[Initializing kernel's binary]");
+	ncNewline();
 
 	clearBSS(&bss, &endOfKernel - &bss);
 
+	ncPrint("  text: 0x");
+	ncPrintHex((uint64_t)&text);
+	ncNewline();
+	ncPrint("  rodata: 0x");
+	ncPrintHex((uint64_t)&rodata);
+	ncNewline();
+	ncPrint("  data: 0x");
+	ncPrintHex((uint64_t)&data);
+	ncNewline();
+	ncPrint("  bss: 0x");
+	ncPrintHex((uint64_t)&bss);
+	ncNewline();
+
+	ncPrint("[Done]");
+	ncNewline();
+	ncNewline();
 	return getStackBase();
 }
 
 int main()
-{	
-	load_idt();
-	ncClear();
+{
+	initMemory((char*)startingMemoryAddress, 1020*1024*64);
+	loadIdt();
+	initVideoDriver();
+	initializeFunctionKeys();
 
-	_cli();
-	initSemaphores();
-	_sti();
+	//Test para printmem
+	// uint8_t * pos = 0x12345678;
+	// for (uint8_t i = 0; i < 32; i++) {
+	// 	*(pos+i) = 0x10 + i;
+	// }
 
-	_cli();
-	initPipes();
-	_sti();
+	ncPrint("[Kernel Main]");
+	ncNewline();
+	ncPrint("  Sample code module at 0x");
+	ncPrintHex((uint64_t)sampleCodeModuleAddress);
+	ncNewline();
+	ncPrint("  Calling the sample code module returned: ");
+	saveInitialConditions(sampleCodeModuleAddress);
+	ncPrintHex(((EntryPoint)sampleCodeModuleAddress)());
+	ncNewline();
+	ncNewline();
 
-	_cli();
-	initScheduler();
-	_sti();
+	ncPrint("  Sample data module at 0x");
+	ncPrintHex((uint64_t)sampleDataModuleAddress);
+	ncNewline();
+	ncPrint("  Sample data module contents: ");
+	ncPrint((char*)sampleDataModuleAddress);
+	ncNewline();
 
-	saveInitialState((uint64_t)sampleCodeModuleAddress, getSP());
-	
-	((EntryPoint)sampleCodeModuleAddress)();
-	/* No vuelve a este punto despues de que se borra firstProcess */
-	while(1);
-	printWithColor("Game over\n", RED_BLACK);
-	
+	ncPrint("[Finished]");
+
+
+
 	return 0;
 }
