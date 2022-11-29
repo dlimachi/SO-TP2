@@ -98,7 +98,7 @@ void * initializeKernelBinary()
 int main()
 {
 	initMemory((char*)startingMemoryAddress, 1020*1024*64);
-	loadIdt();
+	load_idt();
 	initVideoDriver();
 	initializeFunctionKeys();
 
