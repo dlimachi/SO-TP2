@@ -2,11 +2,13 @@
 #define KEYBOARD_DRIVER
 
 #include <registers.h>
-#include <keyboardDriver.asm>
+//#include <keyboardDriver.asm>
 #include <keyboardDriver.h>
 #include <stdint.h>
 #include <IOManager.h>
+#include <IO_driver.h>
 #include <interrupts.h>
+#include <keyboard_asm.h>
 
 #define BUFFER_SIZE 64
 

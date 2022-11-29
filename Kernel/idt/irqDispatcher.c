@@ -3,9 +3,9 @@
 #define IRQ_DISPATCHER
 
 #include <naiveConsole.h>
-#include <keyboard_driver.h>
-#include <timer_driver.h>
-#include <syscalls.h>
+#include <keyboardDriver.h>
+#include <time.h>
+#include <syscallDispatcher.h>
 #include <interrupts.h>
 #include <irqDispatcher.h>
 
