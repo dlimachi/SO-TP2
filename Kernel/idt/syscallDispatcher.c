@@ -1,11 +1,13 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <syscallDispatcher.h>
+#include <stdio.h>
+#include <scheduler.h>
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9) {
 	switch (rdi) {																	
 		case 0:
-			return readHandler(STDIN); 													
+			return readHandler(stdin); 													
 		case 1:
 			putCharWithColor((char) rsi, (unsigned char)rdx); 					
 			return 1;																
@@ -32,7 +34,8 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rc
 			printAllProcessesInfo();
 			return 9;
 		case 10:
-			return getPid();
+			getPid();
+			return 10;
 		case 11:
 			return toggleBlocked(rsi);												
 		case 12:
@@ -43,7 +46,8 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rc
 			mem();
 			return 14;
 		case 15:
-			return createProcess((void (*)(int, char **))rsi, (int)rdx, (char **)rcx, (int *) r8, (mode) r9);
+			createProcess((void (*)(int, char **))rsi, (int)rdx, (char **)rcx, (int *) r8, (mode) r9);
+			return 15;
 		case 16:
 			printListofSemaphores();
 			return 16;
@@ -81,7 +85,8 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rc
 		case 30:
 			return (uint64_t)pipeOpen((char *)rsi);
 		case 31:
-			return pipeClose((char *)rsi);
+			pipeClose((char *)rsi);
+			return 31;
 		case 32:
 			return getFdIn();
 		case 33:

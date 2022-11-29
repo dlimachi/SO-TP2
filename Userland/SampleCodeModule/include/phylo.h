@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #define INITIAL_PHYL 5
-#define MAX_PHYL 10
+#define MAX_PHYLOS 10
 #define MIN_PHYLOS 2
 
 

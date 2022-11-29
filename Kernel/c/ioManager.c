@@ -1,4 +1,5 @@
 #include <IOManager.h>
+#include <stdio.h>
 
 void print(char * str){
     printWithColor(str, WHITE_BLACK);
@@ -33,7 +34,7 @@ void printBase(uint64_t value, uint32_t base){
 unsigned char readHandler(int fd){
     if(fd < 0)
         return 0;
-    if(fd == STDIN)
+    if(fd == stdin)
         return kb_getChar();
     return readPipeWithFd(fd);  
 }
@@ -41,7 +42,7 @@ unsigned char readHandler(int fd){
 uint32_t writeStrHandler(int fd, char * str, uint8_t colorCode){
     if(fd < 0)
         return 0;
-    if(fd == STDOUT){
+    if(fd == stdout){
         ncPrintWithColor(str, colorCode);
         return strlen(str);
     }
@@ -52,7 +53,7 @@ uint32_t writeStrHandler(int fd, char * str, uint8_t colorCode){
 uint32_t writeCharHandler(int fd, char c, uint8_t colorCode){
     if(fd < 0)
         return 0;
-    if(fd == STDOUT){
+    if(fd == stdout){
         ncPrintCharWithColor(c, colorCode);
         return 1;
     }

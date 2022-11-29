@@ -1,7 +1,7 @@
 #ifndef SEMAPHORES_USER_H
 #define SEMAPHORES_USER_H
 
-#include <syscalls_asm.h>
+//#include <syscalls_asm.h>
 #include <stdint.h>
 #include <stdio.h>
 
