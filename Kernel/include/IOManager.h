@@ -6,9 +6,6 @@
 #include <pipes.h>
 #include <scheduler.h>
 
-#define STDIN 0
-#define STDOUT 1
-
 void print(char * str);
 void printWithColor(char * str, uint8_t colorCode);
 void putChar(char c);
